@@ -31,6 +31,10 @@ func main() {
 
 }
 
+func createSMTP() (ports.SMTPServiceInterface, error) {
+	return &adapters.SMTP{}, nil
+}
+
 func createOTPDatastore() (ports.OTPDatastoreInterface, error) {
 	return &adapters.OTPDatastore{}, nil
 }
@@ -40,8 +44,13 @@ func createOTPCore() (core.OTP, error) {
 	if err != nil {
 		return nil, err
 	}
+	smt, err := createSMTP()
+	if err != nil {
+		return nil, err
+	}
 	return &core.OTPBusiness{
-		DS: ds,
+		DS:   ds,
+		SMTP: smt,
 	}, nil
 }
 
