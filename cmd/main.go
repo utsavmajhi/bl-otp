@@ -4,7 +4,9 @@ import (
 	"log"
 	"net"
 
+	"github.com/Zzocker/bl-otp/adapters"
 	"github.com/Zzocker/bl-otp/core"
+	"github.com/Zzocker/bl-otp/core/ports"
 	"github.com/Zzocker/bl-otp/userside/grpcside"
 	pb "github.com/Zzocker/bl-proto-go/otp"
 	"google.golang.org/grpc"
@@ -29,8 +31,18 @@ func main() {
 
 }
 
+func createOTPDatastore() (ports.OTPDatastoreInterface, error) {
+	return &adapters.OTPDatastore{}, nil
+}
+
 func createOTPCore() (core.OTP, error) {
-	return &core.OTPBusiness{}, nil
+	ds, err := createOTPDatastore()
+	if err != nil {
+		return nil, err
+	}
+	return &core.OTPBusiness{
+		DS: ds,
+	}, nil
 }
 
 func createOTPServerSide() (pb.OTPServicesServer, error) {
