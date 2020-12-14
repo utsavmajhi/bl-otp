@@ -1,4 +1,3 @@
-# bl-otp
+# (Bookollab OTP service)bl-otp
 
-For enabling private import use<br>
-go env -w GOPRIVATE=github.com/Zzocker/*
+A OTP server for verifying user

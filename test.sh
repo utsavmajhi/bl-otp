@@ -10,7 +10,7 @@ case $1 in
     "verify")
         EMAIL_ID=$2
         OTP=$3
-        grpcurl --plaintext -d '{"EmailID":"'"$EmailID"'","OTP":"'"$OTP"'"}' $ADDRESS otp.OTPServices.VerifyOTP
+        grpcurl --plaintext -d '{"EmailID":"'"$EMAIL_ID"'","OTP":"'"$OTP"'"}' $ADDRESS otp.OTPServices.VerifyOTP
     ;;
 esac 
 

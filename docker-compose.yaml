@@ -1,0 +1,29 @@
+version: '2.1'
+
+networks: 
+  otp:
+
+services: 
+  datastore:
+    container_name: otp_datastore
+    image: mysql
+    environment: 
+      - MYSQL_ROOT_PASSWORD=root
+    networks: 
+      - otp
+  otp_server:
+    container_name: otp_server
+    image: zzocker20/bl-otp
+    environment: 
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - PASSWORD=${PASSWORD}
+      - MYSQL_URL=otp_datastore:3306
+      - MYSQL_USERNAME=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=bookollab
+    networks: 
+      - otp
+    ports: 
+      - 8081:8081

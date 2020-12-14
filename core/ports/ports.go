@@ -15,10 +15,6 @@ type OTPDatastoreInterface interface {
 
 // SMTPServiceInterface :
 type SMTPServiceInterface interface {
-	SendMail(email, otp string) *errors.Er
+	StartDaemon()
 }
 
-// UserprofileInterface :
-type UserprofileInterface interface {
-	IsEmailAvailable(email string) *errors.Er
-}

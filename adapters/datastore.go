@@ -87,5 +87,7 @@ func (ds *OTPDatastore) Delete(email string) *errors.Er {
 // CREATE TABLE otp(
 // 	email VARCHAR(200) PRIMARY KEY,
 // 	otp VARCHAR(4) NOT NULL,
-// 	expiry_time BIGINT NOT NULL,
+// 	expiry_time BIGINT NOT NULL
 // );
+
+// docker run -p 3306:3306 --name mysql -e MYSQL_ROOT_PASSWORD=root -d mysql

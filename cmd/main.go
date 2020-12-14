@@ -1,10 +1,17 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
+	"html/template"
 	"log"
 	"net"
+	"net/smtp"
+
+	"github.com/Zzocker/bl-utils/pkg/datastore"
 
 	"github.com/Zzocker/bl-otp/adapters"
+	"github.com/Zzocker/bl-otp/config"
 	"github.com/Zzocker/bl-otp/core"
 	"github.com/Zzocker/bl-otp/core/ports"
 	"github.com/Zzocker/bl-otp/userside/grpcside"
@@ -14,7 +21,7 @@ import (
 )
 
 func main() {
-	lis, err := net.Listen("tcp", ":8081")
+	lis, err := net.Listen("tcp", ":"+config.SERVER_RUNNING_PORT)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,6 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 	reflection.Register(srv)
+	fmt.Printf("Serevr started at port : %s", config.SERVER_RUNNING_PORT)
 	pb.RegisterOTPServicesServer(srv, otpServ)
 	if err := srv.Serve(lis); err != nil {
 		log.Fatal(err)
@@ -32,11 +40,32 @@ func main() {
 }
 
 func createSMTP() (ports.SMTPServiceInterface, error) {
-	return &adapters.SMTP{}, nil
+	auth := smtp.PlainAuth("", config.EMAIL_FROM, config.PASSWORD, config.SMTP_HOST)
+	tmt, err := template.ParseFiles("template/otp_mail.html")
+	if err != nil {
+		return nil, err
+	}
+	return &adapters.SMTP{
+		Auth: auth,
+		Tmt:  tmt,
+	}, nil
 }
 
 func createOTPDatastore() (ports.OTPDatastoreInterface, error) {
-	return &adapters.OTPDatastore{}, nil
+	dbcfg := datastore.DatastoreConfig{
+		Code:     "mysql",
+		URL:      config.MYSQL_URL,
+		Username: config.MYSQL_USERNAME,
+		Password: config.MYSQL_PASSWORD,
+		DBName:   config.MYSQL_DATABASE,
+	}
+	db, err := datastore.FromFactory("mysql").Build(dbcfg)
+	if err != nil {
+		return nil, err
+	}
+	return &adapters.OTPDatastore{
+		DB: db.(*sql.DB),
+	}, nil
 }
 
 func createOTPCore() (core.OTP, error) {
@@ -48,9 +77,12 @@ func createOTPCore() (core.OTP, error) {
 	if err != nil {
 		return nil, err
 	}
+	msgchannel := make(chan config.MailChannelMsg, 30)
+	smt.(*adapters.SMTP).Ch = msgchannel
+	go smt.StartDaemon()
 	return &core.OTPBusiness{
-		DS:   ds,
-		SMTP: smt,
+		DS: ds,
+		Ch: msgchannel,
 	}, nil
 }
 
